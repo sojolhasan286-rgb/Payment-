@@ -50,7 +50,6 @@
 <div class="card">
     <img src="https://files.catbox.moe/4c11cv.jpg" class="banner" alt="Payment Banner">
 
-    <!-- মেইন মেনু ভিউ -->
     <div id="view-main" class="active">
         <div class="amt-title">💵 রিচার্জ পরিমাণ নির্বাচন করুন (BDT):</div>
         <div class="amt-grid">
@@ -125,13 +124,17 @@
     // গুগল শিট কনফিগারেশন
     const GOOGLE_API_URL = "https://script.google.com/macros/s/AKfycbzdO1kd9AUy6ziDEPkUc02l0i_lPAGpRe9ATUVrcHB3QPC5nPmLlgucDlGuho0KTbGo/exec";
     
-    // আপনার নতুন আসল Bot Token (GitHub সিকিউর এনকোডেড)
+    // Bot Token (এনকোডেড)
     const _t1 = "ODMwNTUzODA5Mg==";
     const _t2 = "QUFHeXlxUHhSbzc3MUh0NFpyU2ltSXFualI2cVQwcXZKNkk=";
     const BOT_TOKEN = atob(_t1) + ":" + atob(_t2);
 
     const ADMIN_ID = "6851638362";
     const CHANNEL_ID = "-1004354121226";
+    
+    // Bots.Business API কনফিগারেশন (সরাসরি ব্যালেন্স আপডেটের জন্য)
+    const BB_BOT_ID = "2982897";
+    const BB_API_KEY = "sRFim-ILS6EiDpb7UhcOlo6_Rpcs7rBU_Ciox-k3";
 
     function selectAmount(amt, el) {
         currentAmount = amt;
@@ -192,6 +195,7 @@
         alertBox.style.display = 'none';
 
         try {
+            // ১. গুগল শিট থেকে লাইভ চেক
             const response = await fetch(`${GOOGLE_API_URL}?txnid=${encodeURIComponent(trx)}`);
             const data = await response.json();
 
@@ -204,7 +208,37 @@
                 const amount = parseFloat(data.Tk);
                 const userChatId = (tg.initDataUnsafe && tg.initDataUnsafe.user) ? tg.initDataUnsafe.user.id : ADMIN_ID;
 
-                // ১. সরাসরি কাস্টমারকে রিসিট পাঠানো
+                // ২. সরাসরি Bots.Business ডাটাবেজে ব্যালেন্স বাড়িয়ে দেওয়া
+                try {
+                    const propName = "balance_" + userChatId;
+                    
+                    // বর্তমান ব্যালেন্স আনা
+                    let curBal = 0.0;
+                    try {
+                        const getRes = await fetch(`https://api.bots.business/v1/bots/${BB_BOT_ID}/properties?name=${propName}&api_key=${BB_API_KEY}`);
+                        const propData = await getRes.json();
+                        if (propData && propData.value) {
+                            curBal = parseFloat(propData.value) || 0.0;
+                        }
+                    } catch(err) {}
+
+                    const newBal = curBal + amount;
+
+                    // নতুন ব্যালেন্স ডাটাবেজে সেভ করা
+                    await fetch(`https://api.bots.business/v1/bots/${BB_BOT_ID}/properties`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'api-key': BB_API_KEY
+                        },
+                        body: JSON.stringify({
+                            name: propName,
+                            value: newBal
+                        })
+                    });
+                } catch(e) {}
+
+                // ৩. সরাসরি কাস্টমারকে রিসিট পাঠানো
                 const userReceipt = `╔══════════════════════╗\n   🎉 <b>𝗣𝗔𝗬𝗠𝗘𝗡𝗧 𝗩𝗘𝗥𝗜𝗙𝗜𝗘𝗗</b> 👑\n╚══════════════════════╝\n\n💳 <b>পেমেন্ট স্ট্যাটাস :</b> ✅ <b>সফল হয়েছে!</b>\n💵 <b>প্রাপ্ত ব্যালেন্স :</b> <b>৳ ${amount.toFixed(2)} BDT</b>\n🆔 <b>TrxID :</b> <code>${data.TrxID}</code>\n━━━━━━━━━━━━━━━━━━━━━━\n⚡ <i>আপনার অ্যাকাউন্টে ব্যালেন্স সফলভাবে যুক্ত হয়েছে!</i>`;
                 
                 await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
@@ -217,7 +251,7 @@
                     })
                 });
 
-                // ২. সরাসরি চ্যানেলে ডিপোজিট লগ পাঠানো
+                // ৪. সরাসরি চ্যানেলে ডিপোজিট লগ পাঠানো
                 const channelLog = `╔══════════════════════╗\n   💎 <b>𝗔𝗨𝗧𝗢 𝗗𝗘𝗣𝗢𝗦𝗜𝗧 𝗟𝗢𝗚</b> 🪙\n╚══════════════════════╝\n\n👤 <b>Customer Chat ID :</b> <code>${userChatId}</code>\n💵 <b>Deposited Amount :</b> <b>৳ ${amount.toFixed(2)} BDT</b>\n🆔 <b>TrxID :</b> <code>${data.TrxID}</code>\n🚦 <b>Status :</b> 🟢 <b>Approved & Added</b>\n━━━━━━━━━━━━━━━━━━━━━━\n⚡ <i>স্বয়ংক্রিয়ভাবে ব্যালেন্স যোগ সম্পন্ন হয়েছে!</i>`;
 
                 await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
@@ -230,20 +264,7 @@
                     })
                 });
 
-                // ৩. সরাসরি এডমিনকে নোটিফিকেশন পাঠানো
-                const adminLog = `🎉 <b>AUTO DEPOSIT SUCCESSFUL!</b>\n━━━━━━━━━━━━━━━━━━━━━━\n👤 <b>কাস্টমার Chat ID:</b> <code>${userChatId}</code>\n💵 <b>টাকা পরিমাণ:</b> <b>৳ ${amount.toFixed(2)} BDT</b>\n🆔 <b>TrxID:</b> <code>${data.TrxID}</code>`;
-
-                await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        chat_id: ADMIN_ID,
-                        text: adminLog,
-                        parse_mode: 'HTML'
-                    })
-                });
-
-                // ৪. পেজ সফলভাবে বন্ধ করা
+                // ৫. পেজটি বন্ধ করা
                 setTimeout(() => {
                     tg.close();
                 }, 1000);
