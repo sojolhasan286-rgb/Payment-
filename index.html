@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>⚡ MR VIP SECURE GATEWAY ⚡</title>
-    <!-- Telegram WebApp SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
@@ -23,7 +22,7 @@
         .copy-row { display: flex; align-items: center; justify-content: space-between; background: rgba(0,0,0,0.25); padding: 12px; border-radius: 14px; margin: 12px 0; border: 1px dashed rgba(255,255,255,0.4); }
         .copy-btn { background: #ffffff; color: #0F172A; border: none; padding: 8px 16px; border-radius: 10px; cursor: pointer; font-size: 13px; font-weight: bold; }
         .binance-bg .copy-btn { background: #F0B90B; color: black; }
-        .input-box { width: 100%; padding: 14px; border-radius: 14px; border: 2px solid rgba(255,255,255,0.3); background: rgba(0,0,0,0.3); color: white; font-size: 16px; outline: none; margin: 12px 0; }
+        .input-box { width: 100%; padding: 14px; border-radius: 14px; border: 2px solid rgba(255,255,255,0.3); background: rgba(0,0,0,0.3); color: white; font-size: 16px; outline: none; margin: 12px 0; text-transform: uppercase; }
         .verify-btn { width: 100%; padding: 15px; border-radius: 16px; border: none; font-size: 16px; font-weight: bold; cursor: pointer; background: #ffffff; color: #0F172A; margin-top: 8px; }
         .binance-bg .verify-btn { background: #F0B90B; color: black; }
         .back-btn { width: 100%; padding: 12px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.3); background: transparent; color: white; margin-top: 10px; cursor: pointer; font-size: 14px; }
@@ -36,7 +35,6 @@
 <div class="container">
     <img src="https://files.catbox.moe/4c11cv.jpg" class="banner" alt="Banner">
 
-    <!-- মেইন মেনু -->
     <div id="view-home" class="active">
         <div class="badge-amount">
             <span>💵 <b id="val-bdt">0</b> BDT</span>
@@ -59,8 +57,8 @@
             <button class="copy-btn" onclick="copyNum('num-bkash')">Copy</button>
         </div>
         <p style="font-size: 13px;">পরিমাণ: <b id="amt-bkash">0</b> BDT পাঠিয়ে TrxID দিন:</p>
-        <input type="text" id="trx-bkash" class="input-box" placeholder="বিকাশ TrxID দিন">
-        <button class="verify-btn" onclick="submitTrx('trx-bkash')">VERIFY PAYMENT 🚀</button>
+        <input type="text" id="trx-bkash" class="input-box" placeholder="10 ডিজিট TrxID (যেমন: DHO8QI6JY0)" maxlength="12">
+        <button class="verify-btn" onclick="submitTrx('bkash', 'trx-bkash')">VERIFY PAYMENT 🚀</button>
         <button class="back-btn" onclick="showHome()">⬅️ BACK</button>
     </div>
 
@@ -73,8 +71,8 @@
             <button class="copy-btn" onclick="copyNum('num-nagad')">Copy</button>
         </div>
         <p style="font-size: 13px;">পরিমাণ: <b id="amt-nagad">0</b> BDT পাঠিয়ে TxnID দিন:</p>
-        <input type="text" id="trx-nagad" class="input-box" placeholder="নগদ TxnID দিন">
-        <button class="verify-btn" onclick="submitTrx('trx-nagad')">VERIFY PAYMENT 🚀</button>
+        <input type="text" id="trx-nagad" class="input-box" placeholder="10-12 ডিজিট TxnID" maxlength="12">
+        <button class="verify-btn" onclick="submitTrx('nagad', 'trx-nagad')">VERIFY PAYMENT 🚀</button>
         <button class="back-btn" onclick="showHome()">⬅️ BACK</button>
     </div>
 
@@ -88,18 +86,16 @@
         </div>
         <p style="font-size: 13px;">পরিমাণ: <b id="amt-binance" style="color:#F0B90B;">0.00</b> USDT পাঠিয়ে Order ID দিন:</p>
         <input type="text" id="trx-binance" class="input-box" placeholder="বাইনান্স Order ID দিন">
-        <button class="verify-btn" onclick="submitTrx('trx-binance')">VERIFY PAYMENT 🚀</button>
+        <button class="verify-btn" onclick="submitTrx('binance', 'trx-binance')">VERIFY PAYMENT 🚀</button>
         <button class="back-btn" onclick="showHome()">⬅️ BACK</button>
     </div>
 </div>
 
 <script>
-    // ফুল-স্ক্রিন এক্সপ্যান্ড
     const tg = window.Telegram.WebApp;
     tg.ready();
     tg.expand();
 
-    // URL থেকে ডায়নামিক ডাটা আনা
     const params = new URLSearchParams(window.location.search);
     const bdt = parseFloat(params.get('bdt')) || 50;
     const bkash = params.get('bkash') || '01925263571';
@@ -136,16 +132,43 @@
         navigator.clipboard.writeText(text).then(() => alert('✅ নাম্বার কপি করা হয়েছে!'));
     }
 
-    function submitTrx(id) {
-        const trx = document.getElementById(id).value.trim();
+    // হাই সিকিউরিটি ভেরিফিকেশন ও TrxID ফরম্যাট চেক
+    function submitTrx(method, inputId) {
+        let trx = document.getElementById(inputId).value.toUpperCase().trim();
+        
         if (!trx) {
-            alert('⚠️ দয়া করে সঠিক TrxID / Order ID লিখুন!');
+            alert('⚠️ দয়া করে ট্রানজেকশন আইডি লিখুন!');
             return;
         }
-        // বটে TrxID সাবমিট করে পেজ বন্ধ করা
+
+        // বিকাশ হলে অবশ্যই ১০ ডিজিট এবং বড় হাতের অক্ষর ও সংখ্যা হতে হবে
+        if (method === 'bkash') {
+            if (trx.length !== 10) {
+                alert('❌ বিকাশ TrxID অবশ্যই ঠিক ১০ ডিজিটের হতে হবে!');
+                return;
+            }
+            if (!/^[A-Z0-9]{10}$/.test(trx)) {
+                alert('❌ বিকাশ TrxID-তে শুধু ইংরেজি বড় হাতের অক্ষর (A-Z) এবং সংখ্যা (0-9) থাকতে হবে!');
+                return;
+            }
+        }
+
+        // নগদ হলে ১০ থেকে ১২ ডিজিট হতে হবে
+        if (method === 'nagad') {
+            if (trx.length < 10 || trx.length > 12) {
+                alert('❌ নগদ TxnID ১০ থেকে ১২ ডিজিটের মধ্যে হতে হবে!');
+                return;
+            }
+            if (!/^[A-Z0-9]{10,12}$/.test(trx)) {
+                alert('❌ নগদ TxnID-তে শুধু ইংরেজি বড় হাতের অক্ষর (A-Z) এবং সংখ্যা (0-9) থাকতে হবে!');
+                return;
+            }
+        }
+
+        // সব ঠিক থাকলে টেলিগ্রাম বটে TrxID পাঠানো
         tg.sendData(trx);
         tg.close();
     }
 </script>
 </body>
-  </html>
+</html>
