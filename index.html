@@ -12,7 +12,6 @@
         .card { background: #ffffff; border-radius: 24px; padding: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.3); width: 100%; max-width: 400px; text-align: center; }
         .banner { width: 100%; border-radius: 16px; max-height: 130px; object-fit: cover; margin-bottom: 15px; }
         
-        /* এমাউন্ট সিলেক্টর গ্রিড */
         .amt-title { font-size: 13px; font-weight: bold; color: #555; margin-bottom: 8px; text-align: left; }
         .amt-grid { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
         .amt-btn { flex: 1 1 30%; background: #F1F5F9; border: 1px solid #CBD5E1; padding: 10px; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 14px; transition: 0.2s; }
@@ -51,7 +50,7 @@
 <div class="card">
     <img src="https://files.catbox.moe/4c11cv.jpg" class="banner" alt="Payment Banner">
 
-    <!-- মেইন মেনু ভিউ (এমাউন্ট ও মেথড সিলেক্টর) -->
+    <!-- মেইন মেনু ভিউ -->
     <div id="view-main" class="active">
         <div class="amt-title">💵 রিচার্জ পরিমাণ নির্বাচন করুন (BDT):</div>
         <div class="amt-grid">
@@ -80,7 +79,7 @@
             <button class="copy-btn" onclick="copyText('bkash-num')">Copy</button>
         </div>
         <p style="font-size: 13px;">পরিমাণ: <b id="bkash-amount">50</b> BDT পাঠিয়ে TrxID দিন:</p>
-        <input type="text" id="bkash-trx" class="input-trx" placeholder="TrxID দিন (যেমন: BL938XJS)">
+        <input type="text" id="bkash-trx" class="input-trx" placeholder="TrxID দিন (যেমন: DHO2R8X52C)">
         <button id="bkash-btn" class="verify-btn" onclick="verifyAndPay('bkash-trx', 'bkash-btn')">VERIFY TRANSACTION 🚀</button>
         <div id="bkash-alert" class="alert-msg alert-error"></div>
         <button class="back-btn" onclick="goHome()">⬅️ BACK</button>
@@ -95,7 +94,7 @@
             <button class="copy-btn" onclick="copyText('nagad-num')">Copy</button>
         </div>
         <p style="font-size: 13px;">পরিমাণ: <b id="nagad-amount">50</b> BDT পাঠিয়ে TxnID দিন:</p>
-        <input type="text" id="nagad-trx" class="input-trx" placeholder="TxnID দিন (যেমন: 72ABC89)">
+        <input type="text" id="nagad-trx" class="input-trx" placeholder="TxnID দিন">
         <button id="nagad-btn" class="verify-btn" onclick="verifyAndPay('nagad-trx', 'nagad-btn')">VERIFY TRANSACTION 🚀</button>
         <div id="nagad-alert" class="alert-msg alert-error"></div>
         <button class="back-btn" onclick="goHome()">⬅️ BACK</button>
@@ -168,7 +167,7 @@
         navigator.clipboard.writeText(text).then(() => alert('✅ নাম্বার কপি করা হয়েছে!'));
     }
 
-    // সরাসরি গুগল শিট থেকে লাইভ ভেরিফাই ফাংশন
+    // ১০০% ফিক্সড ভেরিফাই ও ডাটা সেন্ড ফাংশন
     async function verifyAndPay(inputId, btnId) {
         const trx = document.getElementById(inputId).value.trim();
         const btn = document.getElementById(btnId);
@@ -189,13 +188,17 @@
 
             if (data && data.Tk && data.TrxID) {
                 btn.innerText = "✅ সফল হয়েছে!";
-                // বটে ডাটা পাঠানো এবং পেজ বন্ধ করা
-                tg.sendData(JSON.stringify({
-                    status: "success",
-                    trx: data.TrxID,
-                    amount: parseFloat(data.Tk)
-                }));
-                tg.close();
+                showAlert(alertBox, '🎉 পেমেন্ট সফল হয়েছে! ব্যালেন্স যোগ হচ্ছে...');
+                alertBox.className = 'alert-msg alert-success';
+                alertBox.style.display = 'block';
+
+                // সরাসরি TrxID টি বটে পাঠানো
+                tg.sendData(data.TrxID);
+
+                // টেলিগ্রামে ডাটা পৌঁছানোর জন্য সামান্য সময় দিয়ে পেজ বন্ধ করা
+                setTimeout(function() {
+                    tg.close();
+                }, 1000);
             } else {
                 showAlert(alertBox, '❌ ভুল TrxID অথবা পেমেন্ট এখনো গুগল শিটে আসেনি!');
                 btn.disabled = false;
@@ -210,8 +213,9 @@
 
     function showAlert(box, msg) {
         box.innerText = msg;
+        box.className = 'alert-msg alert-error';
         box.style.display = 'block';
     }
 </script>
 </body>
-</html>
+    </html>
