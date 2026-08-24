@@ -3,171 +3,214 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>⚡ MR VIP SECURE GATEWAY ⚡</title>
+    <title>⚡ MR VIP PAYMENT GATEWAY ⚡</title>
+    <!-- Telegram WebApp SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
-        body { background: #0F172A; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 15px; color: #F8FAFC; }
-        .container { background: #1E293B; border-radius: 28px; padding: 22px; width: 100%; max-width: 420px; box-shadow: 0 20px 40px rgba(0,0,0,0.5); text-align: center; border: 1px solid #334155; }
-        .banner { width: 100%; border-radius: 18px; max-height: 135px; object-fit: cover; margin-bottom: 16px; }
-        .badge-amount { background: linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%); padding: 14px; border-radius: 16px; font-size: 17px; font-weight: bold; margin-bottom: 16px; color: white; display: flex; justify-content: space-around; }
-        .grid-methods { display: flex; justify-content: space-between; gap: 10px; margin-bottom: 15px; }
-        .card-method { background: #334155; border: 2px solid #475569; border-radius: 18px; padding: 8px; width: 31%; height: 75px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.3s; }
-        .card-method:active { transform: scale(0.95); border-color: #3B82F6; }
-        .card-method img { max-height: 100%; max-width: 100%; object-fit: contain; }
-        .pay-box { display: none; text-align: left; padding: 18px; border-radius: 22px; color: white; margin-top: 10px; animation: slideUp 0.3s ease-out; }
-        .bkash-bg { background: linear-gradient(135deg, #E2125D 0%, #880B37 100%); }
-        .nagad-bg { background: linear-gradient(135deg, #F97316 0%, #C2410C 100%); }
-        .binance-bg { background: linear-gradient(135deg, #181A20 0%, #0B0E11 100%); border: 1px solid #F0B90B; }
-        .copy-row { display: flex; align-items: center; justify-content: space-between; background: rgba(0,0,0,0.25); padding: 12px; border-radius: 14px; margin: 12px 0; border: 1px dashed rgba(255,255,255,0.4); }
-        .copy-btn { background: #ffffff; color: #0F172A; border: none; padding: 8px 16px; border-radius: 10px; cursor: pointer; font-size: 13px; font-weight: bold; }
-        .binance-bg .copy-btn { background: #F0B90B; color: black; }
-        .input-box { width: 100%; padding: 14px; border-radius: 14px; border: 2px solid rgba(255,255,255,0.3); background: rgba(0,0,0,0.3); color: white; font-size: 16px; outline: none; margin: 12px 0; text-transform: uppercase; }
-        .verify-btn { width: 100%; padding: 15px; border-radius: 16px; border: none; font-size: 16px; font-weight: bold; cursor: pointer; background: #ffffff; color: #0F172A; margin-top: 8px; }
-        .binance-bg .verify-btn { background: #F0B90B; color: black; }
-        .back-btn { width: 100%; padding: 12px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.3); background: transparent; color: white; margin-top: 10px; cursor: pointer; font-size: 14px; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #0F2027 0%, #203A43 50%, #2C5364 100%); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 12px; color: #333; }
+        .card { background: #ffffff; border-radius: 24px; padding: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.3); width: 100%; max-width: 400px; text-align: center; }
+        .banner { width: 100%; border-radius: 16px; max-height: 130px; object-fit: cover; margin-bottom: 15px; }
+        
+        /* এমাউন্ট সিলেক্টর গ্রিড */
+        .amt-title { font-size: 13px; font-weight: bold; color: #555; margin-bottom: 8px; text-align: left; }
+        .amt-grid { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+        .amt-btn { flex: 1 1 30%; background: #F1F5F9; border: 1px solid #CBD5E1; padding: 10px; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 14px; transition: 0.2s; }
+        .amt-btn.selected { background: #1E88E5; color: white; border-color: #1E88E5; }
+        .custom-amt-input { width: 100%; padding: 12px; border-radius: 12px; border: 2px solid #E2E8F0; font-size: 15px; font-weight: bold; text-align: center; outline: none; margin-bottom: 15px; }
+        
+        .methods-grid { display: flex; justify-content: space-between; gap: 10px; margin-bottom: 15px; }
+        .method-card { border: 2px solid #E2E8F0; background: #F8FAFC; border-radius: 16px; padding: 10px; width: 31%; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; justify-content: center; height: 75px; }
+        .method-card:hover { transform: translateY(-3px); border-color: #1E88E5; }
+        .method-card img { max-height: 100%; max-width: 100%; object-fit: contain; }
+        
+        .pay-box { display: none; text-align: left; padding: 18px; border-radius: 20px; color: white; margin-top: 10px; }
+        .bkash-theme { background: linear-gradient(135deg, #E2125D 0%, #9F063A 100%); }
+        .nagad-theme { background: linear-gradient(135deg, #E11C24 0%, #A30A0E 100%); }
+        .binance-theme { background: linear-gradient(135deg, #181A20 0%, #0B0E11 100%); color: #F0B90B; border: 1px solid #F0B90B; }
+        
+        .copy-box { display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.2); padding: 12px; border-radius: 12px; font-size: 16px; margin: 12px 0; border: 1px dashed rgba(255,255,255,0.6); }
+        .binance-theme .copy-box { background: rgba(240, 185, 11, 0.15); border: 1px dashed #F0B90B; color: #fff; }
+        .copy-btn { background: #fff; color: #111; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: bold; }
+        
+        .input-trx { width: 100%; padding: 14px; border-radius: 12px; border: 2px solid rgba(255,255,255,0.5); margin: 12px 0; font-size: 15px; background: rgba(255,255,255,0.2); color: white; outline: none; }
+        .input-trx::placeholder { color: rgba(255,255,255,0.7); }
+        
+        .verify-btn { background: #ffffff; color: #111; width: 100%; padding: 15px; border-radius: 14px; border: none; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .binance-theme .verify-btn { background: #F0B90B; color: #000; }
+        .back-btn { background: transparent; color: white; width: 100%; padding: 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.4); font-size: 14px; cursor: pointer; margin-top: 8px; }
+        
+        .alert-msg { padding: 10px; border-radius: 10px; font-size: 13px; font-weight: bold; margin-top: 10px; display: none; text-align: center; }
+        .alert-error { background: #FFEBEE; color: #C62828; border: 1px solid #EF9A9A; }
+        .alert-success { background: #E8F5E9; color: #2E7D32; border: 1px solid #A5D6A7; }
         .active { display: block !important; }
-        @keyframes slideUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <img src="https://files.catbox.moe/4c11cv.jpg" class="banner" alt="Banner">
+<div class="card">
+    <img src="https://files.catbox.moe/4c11cv.jpg" class="banner" alt="Payment Banner">
 
-    <div id="view-home" class="active">
-        <div class="badge-amount">
-            <span>💵 <b id="val-bdt">0</b> BDT</span>
-            <span>🟡 <b id="val-usdt">0.00</b> USDT</span>
+    <!-- মেইন মেনু ভিউ (এমাউন্ট ও মেথড সিলেক্টর) -->
+    <div id="view-main" class="active">
+        <div class="amt-title">💵 রিচার্জ পরিমাণ নির্বাচন করুন (BDT):</div>
+        <div class="amt-grid">
+            <button class="amt-btn selected" onclick="selectAmount(50, this)">৳ ৫০</button>
+            <button class="amt-btn" onclick="selectAmount(100, this)">৳ ১০০</button>
+            <button class="amt-btn" onclick="selectAmount(200, this)">৳ ২০০</button>
+            <button class="amt-btn" onclick="selectAmount(500, this)">৳ ৫০০</button>
+            <button class="amt-btn" onclick="selectAmount(1000, this)">৳ ১০০০</button>
         </div>
-        <p style="font-size: 13px; color: #94A3B8; margin-bottom: 12px; font-weight: bold;">পেমেন্ট মাধ্যম নির্বাচন করুন 👇</p>
-        <div class="grid-methods">
-            <div class="card-method" onclick="showPay('bkash')"><img src="https://files.catbox.moe/54mbuq.jpg" alt="bKash"></div>
-            <div class="card-method" onclick="showPay('nagad')"><img src="https://files.catbox.moe/m4iobq.jpg" alt="Nagad"></div>
-            <div class="card-method" onclick="showPay('binance')"><img src="https://files.catbox.moe/uwbw0v.jpg" alt="Binance"></div>
+        <input type="number" id="custom-amt" class="custom-amt-input" placeholder="বা কাস্টম টাকা লিখুন (যেমন: 150)" oninput="customAmountInput(this.value)">
+
+        <div class="amt-title">💳 পেমেন্ট মাধ্যম বেছে নিন 👇</div>
+        <div class="methods-grid">
+            <div class="method-card" onclick="openMethod('bkash')"><img src="https://files.catbox.moe/54mbuq.jpg" alt="bKash"></div>
+            <div class="method-card" onclick="openMethod('nagad')"><img src="https://files.catbox.moe/m4iobq.jpg" alt="Nagad"></div>
+            <div class="method-card" onclick="openMethod('binance')"><img src="https://files.catbox.moe/uwbw0v.jpg" alt="Binance"></div>
         </div>
     </div>
 
     <!-- বিকাশ -->
-    <div id="view-bkash" class="pay-box bkash-bg">
+    <div id="view-bkash" class="pay-box bkash-theme">
         <h3>🔴 bKash Personal</h3>
-        <p style="font-size: 12px; margin-top: 4px;">Send Money করুন নিচের নাম্বারে:</p>
-        <div class="copy-row">
-            <span id="num-bkash" style="font-weight: bold; font-size: 17px;">01925263571</span>
-            <button class="copy-btn" onclick="copyNum('num-bkash')">Copy</button>
+        <p style="font-size: 12px; opacity: 0.9;">Send Money করুন নিচের নাম্বারে:</p>
+        <div class="copy-box">
+            <span id="bkash-num" style="font-weight: bold;">01754058167</span>
+            <button class="copy-btn" onclick="copyText('bkash-num')">Copy</button>
         </div>
-        <p style="font-size: 13px;">পরিমাণ: <b id="amt-bkash">0</b> BDT পাঠিয়ে TrxID দিন:</p>
-        <input type="text" id="trx-bkash" class="input-box" placeholder="10 ডিজিট TrxID (যেমন: DHO8QI6JY0)" maxlength="12">
-        <button class="verify-btn" onclick="submitTrx('bkash', 'trx-bkash')">VERIFY PAYMENT 🚀</button>
-        <button class="back-btn" onclick="showHome()">⬅️ BACK</button>
+        <p style="font-size: 13px;">পরিমাণ: <b id="bkash-amount">50</b> BDT পাঠিয়ে TrxID দিন:</p>
+        <input type="text" id="bkash-trx" class="input-trx" placeholder="TrxID দিন (যেমন: BL938XJS)">
+        <button id="bkash-btn" class="verify-btn" onclick="verifyAndPay('bkash-trx', 'bkash-btn')">VERIFY TRANSACTION 🚀</button>
+        <div id="bkash-alert" class="alert-msg alert-error"></div>
+        <button class="back-btn" onclick="goHome()">⬅️ BACK</button>
     </div>
 
     <!-- নগদ -->
-    <div id="view-nagad" class="pay-box nagad-bg">
+    <div id="view-nagad" class="pay-box nagad-theme">
         <h3>🟠 Nagad Personal</h3>
-        <p style="font-size: 12px; margin-top: 4px;">Send Money করুন নিচের নাম্বারে:</p>
-        <div class="copy-row">
-            <span id="num-nagad" style="font-weight: bold; font-size: 17px;">01925263571</span>
-            <button class="copy-btn" onclick="copyNum('num-nagad')">Copy</button>
+        <p style="font-size: 12px; opacity: 0.9;">Send Money করুন নিচের নাম্বারে:</p>
+        <div class="copy-box">
+            <span id="nagad-num" style="font-weight: bold;">01925263571</span>
+            <button class="copy-btn" onclick="copyText('nagad-num')">Copy</button>
         </div>
-        <p style="font-size: 13px;">পরিমাণ: <b id="amt-nagad">0</b> BDT পাঠিয়ে TxnID দিন:</p>
-        <input type="text" id="trx-nagad" class="input-box" placeholder="10-12 ডিজিট TxnID" maxlength="12">
-        <button class="verify-btn" onclick="submitTrx('nagad', 'trx-nagad')">VERIFY PAYMENT 🚀</button>
-        <button class="back-btn" onclick="showHome()">⬅️ BACK</button>
+        <p style="font-size: 13px;">পরিমাণ: <b id="nagad-amount">50</b> BDT পাঠিয়ে TxnID দিন:</p>
+        <input type="text" id="nagad-trx" class="input-trx" placeholder="TxnID দিন (যেমন: 72ABC89)">
+        <button id="nagad-btn" class="verify-btn" onclick="verifyAndPay('nagad-trx', 'nagad-btn')">VERIFY TRANSACTION 🚀</button>
+        <div id="nagad-alert" class="alert-msg alert-error"></div>
+        <button class="back-btn" onclick="goHome()">⬅️ BACK</button>
     </div>
 
     <!-- বাইনান্স -->
-    <div id="view-binance" class="pay-box binance-bg">
-        <h3 style="color:#F0B90B;">🟡 Binance Pay</h3>
-        <p style="font-size: 12px; margin-top: 4px;">Binance Pay ID-তে সেন্ড করুন:</p>
-        <div class="copy-row">
-            <span id="num-binance" style="font-weight: bold; font-size: 17px; color:#F0B90B;">1132992475</span>
-            <button class="copy-btn" onclick="copyNum('num-binance')">Copy</button>
+    <div id="view-binance" class="pay-box binance-theme">
+        <h3>🟡 Binance Pay (USDT)</h3>
+        <p style="font-size: 12px; color: #fff;">Binance Pay ID-তে সেন্ড করুন:</p>
+        <div class="copy-box">
+            <span id="binance-id" style="font-weight: bold; color:#F0B90B;">1132992475</span>
+            <button class="copy-btn" style="background:#F0B90B; color:#000;" onclick="copyText('binance-id')">Copy</button>
         </div>
-        <p style="font-size: 13px;">পরিমাণ: <b id="amt-binance" style="color:#F0B90B;">0.00</b> USDT পাঠিয়ে Order ID দিন:</p>
-        <input type="text" id="trx-binance" class="input-box" placeholder="বাইনান্স Order ID দিন">
-        <button class="verify-btn" onclick="submitTrx('binance', 'trx-binance')">VERIFY PAYMENT 🚀</button>
-        <button class="back-btn" onclick="showHome()">⬅️ BACK</button>
+        <p style="font-size: 13px; color:#fff;">পরিমাণ: <b id="binance-usdt" style="color:#F0B90B;">0.40</b> USDT পাঠিয়ে Order ID দিন:</p>
+        <input type="text" id="binance-trx" class="input-trx" placeholder="Binance Order ID দিন">
+        <button id="binance-btn" class="verify-btn" onclick="verifyAndPay('binance-trx', 'binance-btn')">VERIFY TRANSACTION 🚀</button>
+        <div id="binance-alert" class="alert-msg alert-error"></div>
+        <button class="back-btn" onclick="goHome()">⬅️ BACK</button>
     </div>
 </div>
 
 <script>
     const tg = window.Telegram.WebApp;
-    tg.ready();
-    tg.expand();
+    tg.ready(); tg.expand();
 
-    const params = new URLSearchParams(window.location.search);
-    const bdt = parseFloat(params.get('bdt')) || 50;
-    const bkash = params.get('bkash') || '01925263571';
-    const nagad = params.get('nagad') || '01925263571';
-    const binance = params.get('binance') || '1132992475';
-    const usdt = (bdt / 126.0).toFixed(2);
+    let currentAmount = 50;
+    const GOOGLE_API_URL = "https://script.google.com/macros/s/AKfycbzdO1kd9AUy6ziDEPkUc02l0i_lPAGpRe9ATUVrcHB3QPC5nPmLlgucDlGuho0KTbGo/exec";
 
-    document.getElementById('val-bdt').innerText = bdt;
-    document.getElementById('val-usdt').innerText = usdt;
-    document.getElementById('amt-bkash').innerText = bdt;
-    document.getElementById('amt-nagad').innerText = bdt;
-    document.getElementById('amt-binance').innerText = usdt;
-    document.getElementById('num-bkash').innerText = bkash;
-    document.getElementById('num-nagad').innerText = nagad;
-    document.getElementById('num-binance').innerText = binance;
+    function selectAmount(amt, el) {
+        currentAmount = amt;
+        document.querySelectorAll('.amt-btn').forEach(b => b.classList.remove('selected'));
+        el.classList.add('selected');
+        document.getElementById('custom-amt').value = '';
+        updateDisplay();
+    }
 
-    function showPay(method) {
-        document.getElementById('view-home').classList.remove('active');
+    function customAmountInput(val) {
+        let amt = parseFloat(val);
+        if (amt && amt >= 10) {
+            currentAmount = amt;
+            document.querySelectorAll('.amt-btn').forEach(b => b.classList.remove('selected'));
+            updateDisplay();
+        }
+    }
+
+    function updateDisplay() {
+        document.getElementById('bkash-amount').innerText = currentAmount;
+        document.getElementById('nagad-amount').innerText = currentAmount;
+        let usdt = (currentAmount / 126.0).toFixed(2);
+        document.getElementById('binance-usdt').innerText = usdt;
+    }
+
+    function openMethod(m) {
+        document.getElementById('view-main').classList.remove('active');
         document.getElementById('view-bkash').classList.remove('active');
         document.getElementById('view-nagad').classList.remove('active');
         document.getElementById('view-binance').classList.remove('active');
-        document.getElementById('view-' + method).classList.add('active');
+        document.getElementById('view-' + m).classList.add('active');
     }
 
-    function showHome() {
+    function goHome() {
         document.getElementById('view-bkash').classList.remove('active');
         document.getElementById('view-nagad').classList.remove('active');
         document.getElementById('view-binance').classList.remove('active');
-        document.getElementById('view-home').classList.add('active');
+        document.getElementById('view-main').classList.add('active');
     }
 
-    function copyNum(id) {
+    function copyText(id) {
         const text = document.getElementById(id).innerText;
         navigator.clipboard.writeText(text).then(() => alert('✅ নাম্বার কপি করা হয়েছে!'));
     }
 
-    // হাই সিকিউরিটি ভেরিফিকেশন ও TrxID ফরম্যাট চেক
-    function submitTrx(method, inputId) {
-        let trx = document.getElementById(inputId).value.toUpperCase().trim();
-        
-        if (!trx) {
-            alert('⚠️ দয়া করে ট্রানজেকশন আইডি লিখুন!');
+    // সরাসরি গুগল শিট থেকে লাইভ ভেরিফাই ফাংশন
+    async function verifyAndPay(inputId, btnId) {
+        const trx = document.getElementById(inputId).value.trim();
+        const btn = document.getElementById(btnId);
+        const alertBox = document.getElementById(inputId.split('-')[0] + '-alert');
+
+        if (!trx || trx.length < 6) {
+            showAlert(alertBox, '⚠️ সঠিক TrxID / Order ID লিখুন!');
             return;
         }
 
-        // বিকাশ হলে অবশ্যই ১০ ডিজিট এবং বড় হাতের অক্ষর ও সংখ্যা হতে হবে
-        if (method === 'bkash') {
-            if (trx.length !== 10) {
-                alert('❌ বিকাশ TrxID অবশ্যই ঠিক ১০ ডিজিটের হতে হবে!');
-                return;
-            }
-            if (!/^[A-Z0-9]{10}$/.test(trx)) {
-                alert('❌ বিকাশ TrxID-তে শুধু ইংরেজি বড় হাতের অক্ষর (A-Z) এবং সংখ্যা (0-9) থাকতে হবে!');
-                return;
-            }
-        }
+        btn.disabled = true;
+        btn.innerText = "⏳ যাচাই করা হচ্ছে...";
+        alertBox.style.display = 'none';
 
-        // নগদ হলে ১০ থেকে ১২ ডিজিট হতে হবে
-        if (method === 'nagad') {
-            if (trx.length < 10 || trx.length > 12) {
-                alert('❌ নগদ TxnID ১০ থেকে ১২ ডিজিটের মধ্যে হতে হবে!');
-                return;
-            }
-            if (!/^[A-Z0-9]{10,12}$/.test(trx)) {
-                alert('❌ নগদ TxnID-তে শুধু ইংরেজি বড় হাতের অক্ষর (A-Z) এবং সংখ্যা (0-9) থাকতে হবে!');
-                return;
-            }
-        }
+        try {
+            const response = await fetch(`${GOOGLE_API_URL}?txnid=${encodeURIComponent(trx)}`);
+            const data = await response.json();
 
-        // সব ঠিক থাকলে টেলিগ্রাম বটে TrxID পাঠানো
-        tg.sendData(trx);
-        tg.close();
+            if (data && data.Tk && data.TrxID) {
+                btn.innerText = "✅ সফল হয়েছে!";
+                // বটে ডাটা পাঠানো এবং পেজ বন্ধ করা
+                tg.sendData(JSON.stringify({
+                    status: "success",
+                    trx: data.TrxID,
+                    amount: parseFloat(data.Tk)
+                }));
+                tg.close();
+            } else {
+                showAlert(alertBox, '❌ ভুল TrxID অথবা পেমেন্ট এখনো গুগল শিটে আসেনি!');
+                btn.disabled = false;
+                btn.innerText = "VERIFY TRANSACTION 🚀";
+            }
+        } catch (e) {
+            showAlert(alertBox, '❌ সার্ভার সমস্যা! ১ মিনিট পর আবার চেষ্টা করুন।');
+            btn.disabled = false;
+            btn.innerText = "VERIFY TRANSACTION 🚀";
+        }
+    }
+
+    function showAlert(box, msg) {
+        box.innerText = msg;
+        box.style.display = 'block';
     }
 </script>
 </body>
